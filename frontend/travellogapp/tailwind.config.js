@@ -10,9 +10,13 @@ module.exports = {
     extend: {
       //Colors used in the project
       colors: {
-        primary: "",
+        primary: "#386FA4",
         secondary: "",
       },
+      // backgroundImage: {
+      //   'login-bg-img': "url('./src/assets/images/bg-image.png')",
+      //   'signup-bg-img': "url('./src/assets/images/signup-bg-img.png')"
+      // }
     },
   },
   plugins: [],

@@ -194,7 +194,7 @@ app.get("/get-all-logs", authenticateToken, async(req,res) => {
 });
 
 //Edit Travel Log
-app.post("/edit-log/:id", authenticateToken, async(req,res) => {
+app.put("/edit-log/:id", authenticateToken, async(req,res) => {
     const {id} = req.params;
     const { title, log, visitedLocation, imageUrl, visitedDate } = req.body;
     const { userId } = req.user;
@@ -230,7 +230,115 @@ app.post("/edit-log/:id", authenticateToken, async(req,res) => {
 
 });
 
+//Delete a Travel Log
+app.delete("/delete-log/:id", authenticateToken, async(req,res) => {
+    const {id} = req.params;
+    const {userId} = req.user;
 
+    try{
+        //Finding the travel log by ID and ensure it belongs to the authenticated user
+        const travelLog = await TravelLog.findOne({_id: id, userId: userId});
+        if(!travelLog){
+            return res.status(404).json({error: true, message: "Travel log not found"})
+        }
+
+        //Delete the travel log from the database.
+        await travelLog.deleteOne({_id: id, userId: userId});
+
+        //Extract the filename from the import
+        const imageUrl = travelLog.imageUrl;
+        const filename = path.basename(imageUrl);
+
+        //Define the file path
+        const filePath = path.join(__dirname, 'uploads', filename);
+
+        //Delete the image file from the uploads folder
+        fs.unlink(filePath, (err) => {
+            if(err) {
+                console.error("Fsiled to delete imag file:", err)
+            }
+        })
+
+        res.status(200).json({ message: "Travel Log deleted successfully"}); 
+    }catch(error){
+        res.status(500).json({ error: true, mesage: error.message});
+    }
+
+});
+
+//Update isFavourite
+app.put("/update-favourites/:id", authenticateToken, async(req,res) => {
+    const {id} = req.params;
+    const {isFavourite} = req.body;
+    const {userId} = req.user;
+
+    try{
+        //Finding the travel log by ID and ensure it belongs to the authenticated user
+        const travelLog = await TravelLog.findOne({_id: id, userId: userId});
+        if(!travelLog){
+            return res.status(404).json({error: true, message: "Travel log not found"})
+        }
+
+        travelLog.isFavourite = isFavourite;
+        await travelLog.save();
+        res.status(200).json({ log:travelLog, message: "Update Successful"})
+
+    }catch(error){
+        res.status(500).json({ error: true, mesage: error.message});
+    }
+
+});
+
+//Search Travel Logs
+app.get("/search", authenticateToken, async(req,res) => {
+    const {query} = req.query;
+    const {userId} = req.user;
+
+    if(!query){
+        return res.status(404).json({error: true, message: "query is required"})
+    }
+
+    try{
+        const searchResults = await TravelLog.find({
+            userId: userId,
+            $or:[
+                {title: { $regex: query, $options: "i"}},
+                {story: { $regex: query, $options: "i"}},
+                {visitedLocation: { $regex: query, $options: "i"}},
+            ],
+        }).sort({ isFavourite: -1});
+
+        res.status(200).json({logs:searchResults})
+    }catch(error){
+        res.status(500).json({error: true, mesage: error.message});
+    }
+});
+
+//Filter Travel Logs By Date
+app.get("/travel-logs/filter", authenticateToken, async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const { userId } = req.user;
+
+    try {
+        // Validate and convert timestamps properly
+        const start = new Date(Number(startDate));
+        const end = new Date(Number(endDate));
+
+        // Ensure valid date conversion
+        if (isNaN(start) || isNaN(end)) {
+            return res.status(400).json({ error: true, message: "Invalid date range" });
+        }
+
+        const filteredLogs = await TravelLog.find({
+            userId: userId,
+            visitedDate: { $gte: start, $lte: end },
+        }).sort({ isFavourite: -1 });
+
+        res.status(200).json({ logs: filteredLogs });
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message });
+    }
+});
 
 
 

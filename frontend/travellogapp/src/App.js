@@ -6,7 +6,6 @@ import './App.css';
 function App() {
   return (
     <div className="App">
-        <h2 className='text-7xl'>Appp</h2>
         <AllRoutes/>
     </div>
   );
