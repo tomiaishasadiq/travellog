@@ -9,7 +9,8 @@ const travelLogSchema = new Schema({
     isFavourite: { type: Boolean, default: false },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true},
     createdOn: { type: Date, default: Date.now},
-    imageUrl:{type: String, required:true},
+    imageUrl: { type: [String], default: [] },  // Store multiple images
+    coverImageUrl: { type: String, default: "" },
     visitedDate: { type: Date, required:true},
 
     budget: {

@@ -123,13 +123,15 @@ app.get("/get-user", authenticateToken, async(req,res) => {
 
    return res.json({
         user: {
-            userName: user.userName,
-            email: user.email,
-            bio: user.bio,
-            following: user.following,
-            followers: user.followers,
-            savedPosts: user.savedPosts,
-            likedPosts: user.likedPosts,
+            user: user,
+            message: "",
+            // userName: user.userName,
+            // email: user.email,
+            // bio: user.bio,
+            // following: user.following,
+            // followers: user.followers,
+            // savedPosts: user.savedPosts,
+            // likedPosts: user.likedPosts,
         },
         message: "",
     });
@@ -343,21 +345,51 @@ app.get("/travel-logs/filter", authenticateToken, async (req, res) => {
 
 
 //Route to handle image upload
-app.post("/image-upload", upload.single("image"), async(req,res) => {
+app.post("/image-upload", upload.array("images",10), async(req,res) => {
+    console.log(req.files);
     try{
-        if(!req.file){
+        if(!req.files || req.files.length === 0){
             return res
             .status(400)
-            .json({error: true, message: "No image uploaded"})
+            .json({error: true, message: "No images uploaded"})
         }
 
-        const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`;
-
+        // const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`;
+        const imageUrl = req.files.map((file) => `http://localhost:8000/uploads/${file.filename}`);
+        
         res.status(201).json({imageUrl});
     }catch(error){
+        console.error("Upload error:", error); 
         res.status(500).json({ error: true, message: error.message});
     }
 });
+
+app.post("/set-cover-image", async (req, res) => {
+    const { logId, coverImageUrl } = req.body;
+
+    if (!logId || !coverImageUrl) {
+        return res.status(400).json({ error: true, message: "logId and coverImageUrl are required" });
+    }
+
+    try {
+        const log = await TravelLog.findById(logId);
+        if (!log) {
+            return res.status(404).json({ error: true, message: "Travel log not found" });
+        }
+
+        if (!log.images.includes(coverImageUrl)) {
+            return res.status(400).json({ error: true, message: "Cover image must be from uploaded images" });
+        }
+
+        log.coverImageUrl = coverImageUrl;
+        await log.save();
+
+        res.status(200).json({ message: "Cover image updated successfully", log });
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message });
+    }
+});
+
 
 //Delete an image from uploads folder
 app.delete("/delete-image", async (req,res) => {
