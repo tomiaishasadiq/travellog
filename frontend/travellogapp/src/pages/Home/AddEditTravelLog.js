@@ -147,6 +147,7 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
           imageUrl: [],
 
         };
+        // eslint-disable-next-line
         const response = await axiosInstance.put(
           "/edit-log/" + logId,
           postData

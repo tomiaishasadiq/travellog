@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import {MdAdd, MdDeleteOutline, MdUpdate, MdClose} from "react-icons/md";
+import {MdAdd, MdClose} from "react-icons/md";
 import { GrMapLocation } from 'react-icons/gr';
 
 const TagInput = ({tags, setTags}) => {

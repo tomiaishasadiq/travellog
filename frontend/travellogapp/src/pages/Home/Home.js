@@ -158,6 +158,7 @@ const resetFilter = () => {
     getAllTravelLogs();
     getUserInfo();
     return () => {}
+    // eslint-disable-next-line
   }, [])
   return (
     <>
