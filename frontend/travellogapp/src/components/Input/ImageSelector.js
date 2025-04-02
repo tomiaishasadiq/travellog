@@ -2,6 +2,8 @@ import React, {useRef, useState, useEffect} from 'react'
 import { FaRegFileImage }from 'react-icons/fa';
 import { MdDeleteOutline } from "react-icons/md"
 import { FaStar } from "react-icons/fa";
+import axiosInstance from './../../utils/axiosInstance';
+import {toast} from "react-toastify";
 
 const ImageSelector = ({image, setImage, handleDeleteImg, coverImage, setCoverImage, logData }) => {
     const inputRef = useRef(null);
@@ -19,38 +21,37 @@ const ImageSelector = ({image, setImage, handleDeleteImg, coverImage, setCoverIm
     
     
     const handleSetCoverImage = async (index) => {
-        if (!logData) {
-          console.error("Log data is missing");
+      // Ensure logData and images are loaded correctly
+      if (!logData || !logData.imageUrl) {
+          console.error("Log data or images are missing");
           return;
-        }
-        const logId = logData._id; 
-        if (!image || image.length === 0) return;
-        
-        const coverImageFile = image[index];
-        setCoverImage(coverImageFile); 
-        
-        const formData = new FormData();
-        formData.append("logId", logId);  
-        formData.append("coverImageUrl", previewUrl[index]); 
+      }
+  
+      const logId = logData._id;
+      const selectedImageUrl = logData.imageUrl[index]; // Use the correct uploaded image URL
+  
+      // If the same image is clicked again, we toggle off the cover image
+      if (coverImage === selectedImageUrl) {
+          setCoverImage(null);
+          toast.info("Cover image removed");
+          return;
+      }
+  
+      setCoverImage(selectedImageUrl);  
+  
     
-        try {
-          const response = await fetch("http://localhost:8000/set-cover-image", {
-            method: "POST",
-            body: JSON.stringify({ logId, coverImageUrl: previewUrl[index] }),
-            headers: { "Content-Type": "application/json" },
-          });
-    
-          const result = await response.json();
-          if (!response.ok) {
-            throw new Error(result.message);
+      try {
+          const response = await axiosInstance.post("/set-cover-image", { logId, coverImageUrl: selectedImageUrl });
+  
+          if (response.data && response.data.coverImageUrl) {
+              setCoverImage(response.data.coverImageUrl); // Ensure UI reflects the backend change
+              toast.success("Cover image updated successfully!");
           }
-    
-          console.log("Cover image updated:", result);
-        } catch (error) {
-          console.error("Error setting cover image:", error.message);
-        }
-      };
-      
+      } catch (error) {
+          toast.error("Error setting cover image");
+      }
+  };
+     
     
 
     const onChooseFile = () => {
@@ -115,19 +116,27 @@ const ImageSelector = ({image, setImage, handleDeleteImg, coverImage, setCoverIm
             <div className="grid grid-cols-3 gap-4 mt-4">
               {previewUrl.map((url, index) => (
                 <div key={index} className="relative">
-                  <img
-                    src={url}
-                    alt={`Selected ${index}`}
-                    className={`w-full h-[150px] object-cover rounded-lg ${
-                    coverImage === index ? "border-4 border-cyan-500" : ""
-                    }`}
-                />
-                <button
-                    className="absolute bottom-2 left-2 bg-white px-2 py-1 text-xs rounded shadow-md"
-                    onClick={() => handleSetCoverImage(index)}>
+            <img
+                src={url}
+                alt={`Selected ${index}`}
+                className={`w-full h-[150px] object-cover rounded-lg ${
+                    coverImage === image[index] ? "border-4 border-cyan-500" : ""
+                }`}
+                 />
 
-                    {coverImage === index ? "Cover Image" : "Set as Cover"}
-                </button>
+                {/* Set as Cover Button */}
+                <button
+                  className={`absolute bottom-2 left-2 px-2 py-1 text-xs rounded shadow-md transition-colors duration-300 cursor-pointer ${
+                      coverImage === previewUrl[index] ? "bg-blue-500 text-white" : "bg-white text-gray-700"
+                  } hover:bg-blue-600 hover:text-white`}
+                  onClick={() => handleSetCoverImage(index)}
+              >
+                  {coverImage === previewUrl[index] ? "✅ Cover Image" : "Set as Cover"}
+                        </button>
+                        {coverImage === previewUrl[index] && (
+                <FaStar className="absolute top-2 left-2 text-yellow-400 text-xl" />
+                  )}
+
 
                   <button
                     className="btn-small btn-delete absolute top-2 right-2"

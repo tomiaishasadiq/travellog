@@ -125,13 +125,6 @@ app.get("/get-user", authenticateToken, async(req,res) => {
         user: {
             user: user,
             message: "",
-            // userName: user.userName,
-            // email: user.email,
-            // bio: user.bio,
-            // following: user.following,
-            // followers: user.followers,
-            // savedPosts: user.savedPosts,
-            // likedPosts: user.likedPosts,
         },
         message: "",
     });
@@ -144,7 +137,6 @@ app.post("/add-travel-log", authenticateToken, async(req,res) => {
         title, 
         log, 
         visitedLocation, 
-        placesVisited, 
         imageUrl, 
         visitedDate, 
         budget,    
@@ -166,9 +158,9 @@ app.post("/add-travel-log", authenticateToken, async(req,res) => {
             title, 
             log, 
             visitedLocation, 
-            placesVisited, 
             userId,
             imageUrl, 
+            coverImageUrl: imageUrl[0],
             visitedDate: parsedVisitedDate, 
         });
 
@@ -198,12 +190,12 @@ app.get("/get-all-logs", authenticateToken, async(req,res) => {
 //Edit Travel Log
 app.put("/edit-log/:id", authenticateToken, async(req,res) => {
     const {id} = req.params;
-    const { title, log, visitedLocation, imageUrl, visitedDate } = req.body;
+    const { title, log, visitedLocation, imageUrl, visitedDate, coverImageUr } = req.body;
     const { userId } = req.user;
 
     //Validate required fields
-    if(!title || !log  || !visitedLocation || !imageUrl || !visitedDate ){
-        return res.status(400).json({ eror: true, message: "All fields are required"})
+    if(!title || !log  || !visitedLocation ||  !visitedDate ){
+        return res.status(400).json({ error: true, message: "All fields are required"})
     }
 
     //Convert visitedDate from milliseconds to Date object
@@ -221,6 +213,7 @@ app.put("/edit-log/:id", authenticateToken, async(req,res) => {
         travelLog.log = log;
         travelLog.visitedLocation = visitedLocation ;
         travelLog.imageUrl = imageUrl || placeholderImgUrl;
+        travelLog.coverImageUrl = coverImageUrl;
         travelLog.visitedDate = parsedVisitedDate;
 
         await travelLog.save();
@@ -249,18 +242,19 @@ app.delete("/delete-log/:id", authenticateToken, async(req,res) => {
 
         //Extract the filename from the import
         const imageUrl = travelLog.imageUrl;
-        const filename = path.basename(imageUrl);
+        if (Array.isArray(imageUrl)) {
+            imageUrl.forEach((image) => {
+                const filename = path.basename(image);
+                const filePath = path.join(__dirname, 'uploads', filename);
 
-        //Define the file path
-        const filePath = path.join(__dirname, 'uploads', filename);
-
-        //Delete the image file from the uploads folder
-        fs.unlink(filePath, (err) => {
-            if(err) {
-                console.error("Fsiled to delete imag file:", err)
-            }
-        })
-
+                // Delete each image file
+                fs.unlink(filePath, (err) => {
+                    if (err) {
+                        console.error("Failed to delete image file:", err);
+                    }
+                });
+            });
+        }
         res.status(200).json({ message: "Travel Log deleted successfully"}); 
     }catch(error){
         res.status(500).json({ error: true, mesage: error.message});
@@ -357,12 +351,13 @@ app.post("/image-upload", upload.array("images",10), async(req,res) => {
         // const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`;
         const imageUrl = req.files.map((file) => `http://localhost:8000/uploads/${file.filename}`);
         
-        res.status(201).json({imageUrl});
+        res.status(200).json({imageUrl});
     }catch(error){
         console.error("Upload error:", error); 
         res.status(500).json({ error: true, message: error.message});
     }
 });
+
 
 app.post("/set-cover-image", async (req, res) => {
     const { logId, coverImageUrl } = req.body;
@@ -377,18 +372,26 @@ app.post("/set-cover-image", async (req, res) => {
             return res.status(404).json({ error: true, message: "Travel log not found" });
         }
 
-        if (!log.images.includes(coverImageUrl)) {
+        console.log("Images Array:", log.images); 
+        console.log("Cover Image URL:", coverImageUrl);
+
+        // Ensure log.images is an array of strings, not objects
+        const imageUrls = log.images.map(img => img.imageUrl || img); 
+
+        if (!imageUrls.includes(coverImageUrl)) {
             return res.status(400).json({ error: true, message: "Cover image must be from uploaded images" });
         }
 
         log.coverImageUrl = coverImageUrl;
         await log.save();
 
-        res.status(200).json({ message: "Cover image updated successfully", log });
+        res.status(200).json({ message: "Cover image updated successfully", coverImageUrl });
     } catch (error) {
         res.status(500).json({ error: true, message: error.message });
     }
 });
+
+
 
 
 //Delete an image from uploads folder
