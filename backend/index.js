@@ -17,7 +17,7 @@ const User = require("./models/user.model");
 const TravelLog = require("./models/travelLog.model");
 
 mongoose.connect(config.connectionString);
-
+const port = process.env.PORT || 8000;
 const app = express();//allow us to make api request and initialise our server
 app.use(express.json()); //to be able to access the body being parsed directly in express
 app.use(cors({origin: "*"}));//whitelist api so the connection works, able to make api request that exists in my computer from a react app that is also running on my computer
@@ -397,7 +397,7 @@ app.delete("/delete-image", async (req,res) => {
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-app.listen(8000);
+app.listen(port);
 module.exports = app;
 
 
