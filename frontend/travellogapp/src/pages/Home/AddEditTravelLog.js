@@ -15,8 +15,9 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
     const [log, setLog] = useState(logInfo?.log || "");
     const [visitedLocation, setVisitedLocation] = useState(logInfo?.visitedLocation || []);
     const [visitedDate, setVisitedDate] = useState(logInfo?.visitedDate || null);
-    const [coverImage, setCoverImage] = useState(logInfo?.coverImage || null);
 
+
+   
     const [error, setError] = useState("");
     
     const addNewTravelLog = async () => {
@@ -25,9 +26,7 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
     
         if (logImg.length > 0) {
           const uploadResponse = await uploadImage(logImg);
-    
-          // Ensure `imageUrl` is a flat array
-          imageUrl = uploadResponse?.imageUrl || []; 
+          imageUrl = uploadResponse?.imageUrl || [];
         }
     
         if (!title || !log || visitedLocation.length === 0 || imageUrl.length === 0 || !visitedDate) {
@@ -35,17 +34,19 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
           return;
         }
     
-        //const or let?
+       
+        
+
+        
         const requestBody = {
           title,
           log,
           imageUrl,  
-          coverImageUrl: coverImage || imageUrl[0], // Use selected cover or first image
           visitedLocation,
           visitedDate: visitedDate ? moment(visitedDate).valueOf() : moment().valueOf(),
         };
     
-        console.log("Request Body:", requestBody); // Debugging log
+        console.log("Request Body:", requestBody);
     
         const response = await axiosInstance.post("/add-travel-log", requestBody);
     
@@ -55,86 +56,60 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
           onClose();
         }
       } catch (error) {
-        if(
-          error.response &&
-          error.response.data &&
-          error.response.data.message
-
-        ){
-          setError(error.response.data.message)
-
-        }else{
-          setError("An unexpected error occurred. Please try again.")
+        if (error.response && error.response.data && error.response.data.message) {
+          setError(error.response.data.message);
+        } else {
+          setError("An unexpected error occurred. Please try again.");
         }
       }
     };
     
-
     const updateTravelLog = async () => {
-      const logId = logInfo._id;
+      const logId = logInfo._id
       
       try {
         let imageUrl = [];
-    
-        // Create the request body initially
-        let requestBody = {
+        let postData = {
           title,
           log,
-          imageUrl: logInfo.imageUrl || [],  // Using the existing image URLs if available
-          coverImageUrl: coverImage || imageUrl[0],  // Use selected cover or first image
+          imageUrl: imageUrl || "",
           visitedLocation,
           visitedDate: visitedDate ? moment(visitedDate).valueOf() : moment().valueOf(),
         };
-    
-        // Check if `logImg` is an array (multiple images) and handle it
-        if (Array.isArray(logImg) && logImg.length > 0) {
-          // Upload images if `logImg` is an array and has images
+        if(typeof logImg === "object"){
           const imgUploadRes = await uploadImage(logImg);
-          imageUrl = imgUploadRes.imageUrl || [];  // Assuming response has imageUrl array
-    
-          // Update the requestBody with the new image URLs
-          requestBody = {
-            ...requestBody,
-            imageUrl,  // Add new images to the body
-          };
+          imageUrl = imgUploadRes.imageUrl || "";
+
+          postData = {
+            ...postData,
+            imageUrl
+          }
         }
-    
-        // If `logImg` is a single image object, upload it as a single image
-        if (typeof logImg === "object" && !Array.isArray(logImg)) {
-          const imgUploadRes = await uploadImage([logImg]); // Assuming uploadImage accepts an array
-          imageUrl = imgUploadRes.imageUrl || []; // Assuming the response contains the image URL
-    
-          // Update the requestBody with the single uploaded image URL
-          requestBody = {
-            ...requestBody,
-            imageUrl,  // Add uploaded image URL to the body
-          };
+
+        if(logImg){
+          const imgUploadRes = await uploadImage(logImg);
+          imageUrl = imgUploadRes.imageUrl || "";
         }
-    
-        // Validation check: Ensure all required fields are filled
-        if (!title || !log || visitedLocation.length === 0 || imageUrl.length === 0 || !visitedDate) {
-          setError("All fields are required");
-          return;
-        }
-    
-        console.log("Request Body:", requestBody); // Debugging log
-    
-        // Send the PUT request to update the travel log
-        const response = await axiosInstance.put("/edit-log/" + logId, requestBody);
-    
+        
+        const response = await axiosInstance.post("/edit-log", + logId, postData)
+
         if (response.data && response.data.log) {
           toast.success("Log Updated Successfully");
-          getAllTravelLogs();  // Assuming this function refreshes the logs
-          onClose();  // Close the modal or form
+          getAllTravelLogs();
+          onClose();
         }
       } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
-          setError(error.response.data.message);  // Handle server-side errors
+          setError(error.response.data.message);
         } else {
-          setError("An unexpected error occurred. Please try again.");  // Handle general errors
+          setError("An unexpected error occurred. Please try again.");
         }
       }
     };
+    
+    
+    
+    
     
    
 
@@ -224,8 +199,6 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
               image = {logImg}
               setImage={setLogImg}  
               handleDeleteImg={handleDeleteLogImg}
-              coverImage={coverImage}
-              setCoverImage={setCoverImage}
               logData={logInfo}
               />
 

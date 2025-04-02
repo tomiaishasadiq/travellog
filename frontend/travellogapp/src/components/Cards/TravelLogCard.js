@@ -5,7 +5,6 @@ import { GrMapLocation } from 'react-icons/gr';
 
 const TravelLogCard = ({
     imgUrl,
-    coverImageUrl,
     title ,
     log ,
     date,
@@ -18,7 +17,7 @@ const TravelLogCard = ({
   return (
     <div className='border rounded-lg overflow-hidden bg-white hover:shadow-lg hover:shadow-slate-200 transition-all ease-in-out relative cursor-pointer '>
       <img 
-          src={coverImageUrl || (imgUrl.length > 0 ? imgUrl[0] : "default-placeholder.png")} 
+          src={imgUrl[0]} 
           alt={title} 
           className='w-full h-56 object-cover rounded-lg'
           onClick={onClick} 

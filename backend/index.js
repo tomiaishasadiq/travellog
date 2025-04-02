@@ -137,40 +137,41 @@ app.post("/add-travel-log", authenticateToken, async(req,res) => {
         title, 
         log, 
         visitedLocation, 
-        imageUrl, 
+        imageUrl,  // imageUrl should be an array of image URLs
         visitedDate, 
         budget,    
         season,    
-        weather 
-      } = req.body;
+        weather, 
+    } = req.body;
     
-    const { userId } = req.user
+    const { userId } = req.user;
 
-    //Validate required fields
-    if(!title || !log  || !visitedLocation || !imageUrl || !visitedDate ){
-        return res.status(400).json({ eror: true, message: "All fields are required"})
+    // Validate required fields
+    if(!title || !log || !visitedLocation || !imageUrl || !visitedDate){
+        return res.status(400).json({ error: true, message: "All fields are required"});
     }
 
-    //Convert visitedDate from milliseconds to Date object
+    // Convert visitedDate from milliseconds to Date object
     const parsedVisitedDate = new Date(parseInt(visitedDate));
-    try{
+
+    try {
+      
         const travelLog = new TravelLog({
             title, 
             log, 
             visitedLocation, 
             userId,
-            imageUrl, 
-            coverImageUrl: imageUrl[0],
+            imageUrl,  // An array of image URLs
             visitedDate: parsedVisitedDate, 
         });
 
         await travelLog.save();
-        res.status(201).json({ log: travelLog, message: 'Added Successfully'});
-    }catch(error){
+        res.status(201).json({ log: travelLog, message: 'Travel Log Added Successfully' });
+    } catch (error) {
         res.status(400).json({ error: true, message: error.message });
     }
-
 });
+
 
 //Get All Travel Logs
 app.get("/get-all-logs", authenticateToken, async(req,res) => {
@@ -188,42 +189,43 @@ app.get("/get-all-logs", authenticateToken, async(req,res) => {
 });
 
 //Edit Travel Log
-app.put("/edit-log/:id", authenticateToken, async(req,res) => {
-    const {id} = req.params;
-    const { title, log, visitedLocation, imageUrl, visitedDate, coverImageUr } = req.body;
+app.put("/edit-log/:id", authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const { title, log, visitedLocation, imageUrl, visitedDate } = req.body;
     const { userId } = req.user;
-
-    //Validate required fields
-    if(!title || !log  || !visitedLocation ||  !visitedDate ){
-        return res.status(400).json({ error: true, message: "All fields are required"})
+  
+    // Validate required fields
+    if (!title || !log || !visitedLocation || !visitedDate) {
+      return res.status(400).json({ error: true, message: "All fields are required" });
     }
-
-    //Convert visitedDate from milliseconds to Date object
+  
+    // Convert visitedDate from milliseconds to Date object
     const parsedVisitedDate = new Date(parseInt(visitedDate));
-
-    try{
-        //Finding the travel log by ID and ensure it belongs to the authenticated user
-        const travelLog = await TravelLog.findOne({_id: id, userId: userId});
-        if(!travelLog){
-            return res.status(404).json({error: true, message: "Travel log not found"})
-        }
-
-        const placeholderImgUrl = `http://localhost:8000/assets/Screenshot 2025-03-26 140750.png`
-        travelLog.title = title;
-        travelLog.log = log;
-        travelLog.visitedLocation = visitedLocation ;
-        travelLog.imageUrl = imageUrl || placeholderImgUrl;
-        travelLog.coverImageUrl = coverImageUrl;
-        travelLog.visitedDate = parsedVisitedDate;
-
-        await travelLog.save();
-        res.status(200).json({ log:travelLog, message:"Update Successful"});
-
-    }catch(error){
-        res.status(500).json({ error: true, mesage: error.message});
+  
+    try {
+      // Finding the travel log by ID and ensuring it belongs to the authenticated user
+      const travelLog = await TravelLog.findOne({ _id: id, userId: userId });
+      if (!travelLog) {
+        return res.status(404).json({ error: true, message: "Travel log not found" });
+      }
+  
+      // Check if there are any new images or if the existing ones should stay
+      const updatedImageUrl = imageUrl?.length ? imageUrl : travelLog.imageUrl;
+  
+      travelLog.title = title;
+      travelLog.log = log;
+      travelLog.visitedLocation = visitedLocation;
+      travelLog.imageUrl = updatedImageUrl;  // Use the updated image URL array
+      travelLog.visitedDate = parsedVisitedDate;
+  
+      await travelLog.save();
+      res.status(200).json({ log: travelLog, message: "Update Successful" });
+  
+    } catch (error) {
+      res.status(500).json({ error: true, message: error.message });
     }
-
-});
+  });
+  
 
 //Delete a Travel Log
 app.delete("/delete-log/:id", authenticateToken, async(req,res) => {
@@ -355,39 +357,6 @@ app.post("/image-upload", upload.array("images",10), async(req,res) => {
     }catch(error){
         console.error("Upload error:", error); 
         res.status(500).json({ error: true, message: error.message});
-    }
-});
-
-
-app.post("/set-cover-image", async (req, res) => {
-    const { logId, coverImageUrl } = req.body;
-
-    if (!logId || !coverImageUrl) {
-        return res.status(400).json({ error: true, message: "logId and coverImageUrl are required" });
-    }
-
-    try {
-        const log = await TravelLog.findById(logId);
-        if (!log) {
-            return res.status(404).json({ error: true, message: "Travel log not found" });
-        }
-
-        console.log("Images Array:", log.images); 
-        console.log("Cover Image URL:", coverImageUrl);
-
-        // Ensure log.images is an array of strings, not objects
-        const imageUrls = log.images.map(img => img.imageUrl || img); 
-
-        if (!imageUrls.includes(coverImageUrl)) {
-            return res.status(400).json({ error: true, message: "Cover image must be from uploaded images" });
-        }
-
-        log.coverImageUrl = coverImageUrl;
-        await log.save();
-
-        res.status(200).json({ message: "Cover image updated successfully", coverImageUrl });
-    } catch (error) {
-        res.status(500).json({ error: true, message: error.message });
     }
 });
 

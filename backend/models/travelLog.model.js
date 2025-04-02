@@ -9,7 +9,6 @@ const travelLogSchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true},
     createdOn: { type: Date, default: Date.now},
     imageUrl: { type: [String], default: [] },
-    coverImageUrl: { type: String },
     visitedDate: { type: Date, required:true},
 
     budget: {

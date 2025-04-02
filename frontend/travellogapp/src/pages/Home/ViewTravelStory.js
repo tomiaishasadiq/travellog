@@ -5,13 +5,15 @@ import {MdAdd, MdDeleteOutline, MdUpdate, MdClose} from 'react-icons/md'
 
 
 const ViewTravelStory = ({logInfo, onClose,onEditClick,onDeleteClick}) => {
+
+    
     return(
         <div className='relative'>
             <div className="flex items-center justify-end">
                 <div>
                     <div className='flex items-center gap-3 bg-cyan-50/50 p-2 rounded-l-lg'>
                     <button className='btn-small' onClick={onEditClick}>
-                        <MdUpdate className='text-lg'/> UPDATE STORY
+                        <MdUpdate className='text-lg'/> UPDATE LOG
                     </button>
 
                     <button className='btn-small btn-delete' onClick={onDeleteClick}>
