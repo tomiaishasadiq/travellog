@@ -14,11 +14,7 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
     const [logImg, setLogImg] = useState(logInfo?.imageUrl || []);
     const [log, setLog] = useState(logInfo?.log || "");
     const [visitedLocation, setVisitedLocation] = useState(logInfo?.visitedLocation || []);
-    const [visitedDate, setVisitedDate] = useState(logInfo?.visitedDate || null);
-
-
-   
-    const [error, setError] = useState("");
+    const [visitedDate, setVisitedDate] = useState(logInfo?.visitedDate || null);const [error, setError] = useState("");
     
     const addNewTravelLog = async () => {
       try {
@@ -29,14 +25,16 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
           imageUrl = uploadResponse?.imageUrl || [];
         }
     
-        if (!title || !log || visitedLocation.length === 0 || imageUrl.length === 0 || !visitedDate) {
+        if (
+          !title || 
+          !log || 
+          visitedLocation.length === 0 || 
+          (logImg.length === 0 || !logImg.some(img => img)) || 
+          !visitedDate
+        ) {
           setError("All fields are required");
           return;
         }
-    
-       
-        
-
         
         const requestBody = {
           title,
@@ -65,52 +63,39 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
     };
     
     const updateTravelLog = async () => {
-      const logId = logInfo._id
-      
+      const logId = logInfo._id;
+  
       try {
-        let imageUrl = [];
-        let postData = {
+        let existingImages = logImg.filter(img => typeof img === 'string'); // Already uploaded
+        let newImages = logImg.filter(img => typeof img !== 'string');      // New files
+        
+        let uploadedUrls = [];
+        if (newImages.length > 0) {
+          const uploadResponse = await uploadImage(newImages);
+          uploadedUrls = uploadResponse?.imageUrl || [];
+        }
+        
+        const imageUrl = [...existingImages, ...uploadedUrls];
+        
+        const postData = {
           title,
           log,
-          imageUrl: imageUrl || "",
+          imageUrl,
           visitedLocation,
           visitedDate: visitedDate ? moment(visitedDate).valueOf() : moment().valueOf(),
         };
-        if(typeof logImg === "object"){
-          const imgUploadRes = await uploadImage(logImg);
-          imageUrl = imgUploadRes.imageUrl || "";
-
-          postData = {
-            ...postData,
-            imageUrl
-          }
-        }
-
-        if(logImg){
-          const imgUploadRes = await uploadImage(logImg);
-          imageUrl = imgUploadRes.imageUrl || "";
-        }
-        
-        const response = await axiosInstance.post("/edit-log", + logId, postData)
-
+  
+        const response = await axiosInstance.put("/edit-log/" + logId, postData);
+  
         if (response.data && response.data.log) {
           toast.success("Log Updated Successfully");
           getAllTravelLogs();
           onClose();
         }
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          setError(error.response.data.message);
-        } else {
-          setError("An unexpected error occurred. Please try again.");
-        }
+        setError(error.response?.data?.message || "An unexpected error occurred. Please try again.");
       }
     };
-    
-    
-    
-    
-    
    
 
     const handleAddOrUpdateClick = () => {

@@ -13,12 +13,13 @@ module.exports = {
         primary: "#386FA4",
         secondary: "",
       },
-      // backgroundImage: {
-      //   'login-bg-img': "url('./src/assets/images/bg-image.png')",
-      //   'signup-bg-img': "url('./src/assets/images/signup-bg-img.png')"
-      // }
+      backgroundImage: {
+        'login-bg-img': "url('./assets/images/bg-image.jpeg')",
+        // 'signup-bg-img': "url('./src/assets/images/signup-bg-img.png')"
+      }
     },
   },
   plugins: [],
 }
+
 

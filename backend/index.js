@@ -137,7 +137,7 @@ app.post("/add-travel-log", authenticateToken, async(req,res) => {
         title, 
         log, 
         visitedLocation, 
-        imageUrl,  // imageUrl should be an array of image URLs
+        imageUrl,  
         visitedDate, 
         budget,    
         season,    
@@ -151,7 +151,7 @@ app.post("/add-travel-log", authenticateToken, async(req,res) => {
         return res.status(400).json({ error: true, message: "All fields are required"});
     }
 
-    // Convert visitedDate from milliseconds to Date object
+    // Converting visitedDate from milliseconds to Date object
     const parsedVisitedDate = new Date(parseInt(visitedDate));
 
     try {
@@ -193,39 +193,37 @@ app.put("/edit-log/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { title, log, visitedLocation, imageUrl, visitedDate } = req.body;
     const { userId } = req.user;
-  
-    // Validate required fields
+
     if (!title || !log || !visitedLocation || !visitedDate) {
       return res.status(400).json({ error: true, message: "All fields are required" });
     }
-  
-    // Convert visitedDate from milliseconds to Date object
+
     const parsedVisitedDate = new Date(parseInt(visitedDate));
-  
+
     try {
-      // Finding the travel log by ID and ensuring it belongs to the authenticated user
       const travelLog = await TravelLog.findOne({ _id: id, userId: userId });
       if (!travelLog) {
         return res.status(404).json({ error: true, message: "Travel log not found" });
       }
-  
-      // Check if there are any new images or if the existing ones should stay
-      const updatedImageUrl = imageUrl?.length ? imageUrl : travelLog.imageUrl;
-  
+
       travelLog.title = title;
       travelLog.log = log;
       travelLog.visitedLocation = visitedLocation;
-      travelLog.imageUrl = updatedImageUrl;  // Use the updated image URL array
       travelLog.visitedDate = parsedVisitedDate;
-  
+
+      if (imageUrl && Array.isArray(imageUrl)) {
+        travelLog.imageUrl = imageUrl;
+      }
+      
+
       await travelLog.save();
       res.status(200).json({ log: travelLog, message: "Update Successful" });
-  
     } catch (error) {
       res.status(500).json({ error: true, message: error.message });
     }
   });
-  
+
+
 
 //Delete a Travel Log
 app.delete("/delete-log/:id", authenticateToken, async(req,res) => {
@@ -350,7 +348,6 @@ app.post("/image-upload", upload.array("images",10), async(req,res) => {
             .json({error: true, message: "No images uploaded"})
         }
 
-        // const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`;
         const imageUrl = req.files.map((file) => `http://localhost:8000/uploads/${file.filename}`);
         
         res.status(200).json({imageUrl});
@@ -399,6 +396,5 @@ app.use("/assets", express.static(path.join(__dirname, "assets")));
 
 app.listen(port);
 module.exports = app;
-
 
 

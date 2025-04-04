@@ -7,59 +7,34 @@ const ImageSelector = ({image, setImage, handleDeleteImg,  logData }) => {
     const inputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState([]);
 
-
-    const handleImageChange = (event) => {
-        const files = Array.from(event.target.files);
-        if (files.length > 0) {
-            setImage((prev) => (Array.isArray(prev) ? [...prev, ...files] : files)); 
-            const urls = files.map((file) => URL.createObjectURL(file));
-            setPreviewUrl((prev) => (Array.isArray(prev) ? [...prev, ...urls] : urls));
-        }
-    };
-
     const onChooseFile = () => {
         inputRef.current.click();
     }
     
-    // const handleRemoveChange = () => {
-    //     setImage(null);
-    //     handleDeleteImg()
-    // }
     const handleRemoveChange = (index) => {
         setPreviewUrl((prev) => prev.filter((_, i) => i !== index));
         setImage((prevImages) => prevImages.filter((_, i) => i !== index));
     
     };
     
+
     
-
-    // useEffect(() => {
-    //     if(typeof image === 'string'){
-    //         setPreviewUrl(image)
-    //     }else if(image){
-    //         setPreviewUrl(URL.createObjectURL(image))
-    //     }else{
-    //         setPreviewUrl(null);
-    //     }
-    //     return () => {
-    //         if(previewUrl && typeof previewUrl === 'string' && !image){
-    //             URL.revokeObjectURL(previewUrl);
-    //         }
-
-    //     }
-    // }, [image])
-
-
-    useEffect(() => {
-        return () => {
-          previewUrl.forEach((url) => URL.revokeObjectURL(url));
-        };
-      }, [previewUrl]);
+      useEffect(() => {
+        // Display existing images
+        if (Array.isArray(image)) {
+          setPreviewUrl(image.map(img => (typeof img === 'string' ? img : URL.createObjectURL(img))));
+        }
+      }, [image]);
     
-
-
-
-
+      const handleImageChange = (event) => {
+        const files = Array.from(event.target.files);
+        if (files.length > 0) {
+          setImage((prev) => [...prev, ...files]);
+          const urls = files.map((file) => URL.createObjectURL(file));
+          setPreviewUrl((prev) => [...prev, ...urls]);
+        }
+      };
+    
       return (
         <div>
           <input

@@ -1,4 +1,6 @@
 import tempLogo from '../assets/images/travellogico.png'
+import NO_LOGS_FOUND from '../assets/images/NoLogsFound.png'
+import ADD_LOG_IMG from '../assets/images/ADD_LOG_IMG.png'
 
 export const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,10 +35,10 @@ export const getEmptyCardMessage = (filterType) => {
 export const getEmptyCardImg = (filterType) => {
     switch(filterType){
         case "search":
-            return null;
+            return NO_LOGS_FOUND;
         case "date":
-            return null;
+            return NO_LOGS_FOUND;
         default:
-            return tempLogo;
+            return ADD_LOG_IMG;
     }
 };
