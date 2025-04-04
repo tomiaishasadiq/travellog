@@ -1,4 +1,3 @@
-import tempLogo from '../assets/images/travellogico.png'
 import NO_LOGS_FOUND from '../assets/images/NoLogsFound.png'
 import ADD_LOG_IMG from '../assets/images/ADD_LOG_IMG.png'
 
@@ -28,7 +27,7 @@ export const getEmptyCardMessage = (filterType) => {
         case "date":
             return `No logs found in the given date range`;
         default:
-            return ``;
+            return `Ready to capture your travel memories? Create your first log by clicking the '+'.`;
     }
 };
 

@@ -137,11 +137,10 @@ app.post("/add-travel-log", authenticateToken, async(req,res) => {
         title, 
         log, 
         visitedLocation, 
+        placesVisited,
         imageUrl,  
         visitedDate, 
-        budget,    
-        season,    
-        weather, 
+        tags 
     } = req.body;
     
     const { userId } = req.user;
@@ -163,6 +162,8 @@ app.post("/add-travel-log", authenticateToken, async(req,res) => {
             userId,
             imageUrl,  // An array of image URLs
             visitedDate: parsedVisitedDate, 
+            placesVisited: placesVisited || [], // Default to an empty array if not provided
+            tags: tags || [],
         });
 
         await travelLog.save();
@@ -191,7 +192,7 @@ app.get("/get-all-logs", authenticateToken, async(req,res) => {
 //Edit Travel Log
 app.put("/edit-log/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
-    const { title, log, visitedLocation, imageUrl, visitedDate } = req.body;
+    const { title, log, visitedLocation, imageUrl, visitedDate, placesVisited, tags } = req.body;
     const { userId } = req.user;
 
     if (!title || !log || !visitedLocation || !visitedDate) {
@@ -214,14 +215,21 @@ app.put("/edit-log/:id", authenticateToken, async (req, res) => {
       if (imageUrl && Array.isArray(imageUrl)) {
         travelLog.imageUrl = imageUrl;
       }
-      
 
+      if (placesVisited && Array.isArray(placesVisited)) {
+        travelLog.placesVisited = placesVisited;
+      }
+  
+      if (tags && Array.isArray(tags)) {
+        travelLog.tags = tags;
+      }
+  
       await travelLog.save();
       res.status(200).json({ log: travelLog, message: "Update Successful" });
     } catch (error) {
       res.status(500).json({ error: true, message: error.message });
     }
-  });
+});
 
 
 
@@ -299,7 +307,7 @@ app.get("/search", authenticateToken, async(req,res) => {
             userId: userId,
             $or:[
                 {title: { $regex: query, $options: "i"}},
-                {story: { $regex: query, $options: "i"}},
+                {log: { $regex: query, $options: "i"}},
                 {visitedLocation: { $regex: query, $options: "i"}},
             ],
         }).sort({ isFavourite: -1});

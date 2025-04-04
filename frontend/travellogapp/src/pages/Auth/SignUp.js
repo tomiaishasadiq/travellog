@@ -61,16 +61,16 @@ const SignUp = () => {
     <div className='h-screen bg-cyan-50 overflow-hidden relative'>
 
       <div className= "login-ui-box right-10 -top-40"/>
-      <div className= "login-ui-box rbg-cyan-200 -bottom-40 right-1/2"/>
+      {/* <div className= "login-ui-box rbg-cyan-200 -bottom-40 right-1/2"/> */}
 
       <div className='container h-screen flex items-center justify-center px-20 mx-auto'>
-        <div className='w-2/4 h-[90vh flex items-end bg-signup-bg-img bg-cover bg-center rounded-lg p-10 z-50'>
+        <div className='w-2/4 h-[90vh] flex items-end bg-signup-bg-img bg-cover bg-center rounded-lg p-10 z-50'>
           <div>
             <h4 className='text-5xl text-white font-semibold leading-[58px] '>
               Join <br/> Be Part Of The Adventure!
             </h4>
             <p className='text-[15px] text-white leading-6 pr-7 mt-4'>
-              Create and account and start documenting your travels and preserving your memories.
+               Create your travel log and begin documenting every step of your journey around the world.
             </p>
           </div>
         </div>

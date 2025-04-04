@@ -199,7 +199,9 @@ const resetFilter = () => {
               })}
             </div>
             ) : (<EmptyCard imgSrc= {getEmptyCardImg(filterType)} 
-                            message={getEmptyCardMessage(filterType)}
+                            message={<span style={{ fontSize: '18px', fontWeight: 'bold', 
+                              color: '#333' }}>{getEmptyCardMessage(filterType)}</span>}
+
                             
                             />)}
           </div>

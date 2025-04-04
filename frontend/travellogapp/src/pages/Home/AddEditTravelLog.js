@@ -14,7 +14,18 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
     const [logImg, setLogImg] = useState(logInfo?.imageUrl || []);
     const [log, setLog] = useState(logInfo?.log || "");
     const [visitedLocation, setVisitedLocation] = useState(logInfo?.visitedLocation || []);
-    const [visitedDate, setVisitedDate] = useState(logInfo?.visitedDate || null);const [error, setError] = useState("");
+    const [placesVisited, setPlacesVisited] = useState(logInfo?.placesVisited || []);
+    const [tags, setTags] = useState(logInfo?.tags|| []);
+    const [visitedDate, setVisitedDate] = useState(logInfo?.visitedDate || null);
+    const [error, setError] = useState("");
+    // const [selectedCategory, setSelectedCategory] = useState("");
+    // const [newPlace, setNewPlace] = useState("");
+
+
+    // const categories = [
+    //  "Brunch", "Dinner","Flea Market", "Restaurant", "Club", "Bar", "Tourist Attraction", "Hotel", "Pub", "Shopping", "Beach", "Hike", "Camping Site", "Museum", "Other"
+    // ];
+    
     
     const addNewTravelLog = async () => {
       try {
@@ -42,6 +53,8 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
           imageUrl,  
           visitedLocation,
           visitedDate: visitedDate ? moment(visitedDate).valueOf() : moment().valueOf(),
+          placesVisited,  
+          tags 
         };
     
         console.log("Request Body:", requestBody);
@@ -83,6 +96,8 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
           imageUrl,
           visitedLocation,
           visitedDate: visitedDate ? moment(visitedDate).valueOf() : moment().valueOf(),
+          placesVisited,  
+          tags 
         };
   
         const response = await axiosInstance.put("/edit-log/" + logId, postData);
@@ -130,6 +145,8 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
           visitedLocation,
           visitedDate: moment().valueOf(),
           imageUrl: [],
+          placesVisited, 
+          tags
 
         };
         // eslint-disable-next-line
@@ -204,6 +221,17 @@ const AddEditTravelLog = ({logInfo, type, onClose ,getAllTravelLogs}) => {
               <label className='input-label'>VISITED LOCATION</label>
               <TagInput tags={visitedLocation} setTags= {setVisitedLocation} />
             </div>
+
+            <div className='pt-3'>
+              <label className='input-label'>PLACES VISITED</label>
+              <TagInput tags={placesVisited} setTags={setPlacesVisited} />
+            </div>
+
+            <div className='pt-3'>
+              <label className='input-label'>TAGS</label>
+              <TagInput tags={tags} setTags={setTags} />
+            </div>
+
         </div>
       </div>
     </div>
